@@ -1,0 +1,11 @@
+{
+  "name": "codeflow",
+  "version": "1.0.0",
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "dev:cli": "bun run --watch packages/cli/src/index.tsx"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.17"
+  }
+}
