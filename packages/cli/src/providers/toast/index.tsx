@@ -1,10 +1,21 @@
-import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from "react";
-import type { ToastOptions, ToastVariant } from "./types";
+import { 
+  createContext, 
+  useContext, 
+  useRef, 
+  useState, 
+  useCallback,
+  useMemo
+} from "react";
+import type { ReactNode } from "react";
 import { useTerminalDimensions } from "@opentui/react";
+import type { ToastOptions, ToastVariant } from "./types";
+import { DEFAULT_DURATION } from "./types";
+import { SplitBorderChars } from "../../components/border";
+import { useTheme } from "../theme";
 
 export type ToastContextValue = {
   show: (options: ToastOptions) => void;
-}
+};
 
 const ToastContext = createContext<ToastContextValue | null>(null);
 
@@ -13,12 +24,13 @@ export function useToast(): ToastContextValue {
   if (!value) {
     throw new Error("useToast must be used within a ToastProvider");
   }
+
   return value;
-}
+};
 
 type ToastProviderProps = {
   children: ReactNode;
-}
+};
 
 export function ToastProvider({ children }: ToastProviderProps) {
   const [currentToast, setCurrentToast] = useState<ToastOptions | null>(null);
@@ -29,60 +41,57 @@ export function ToastProvider({ children }: ToastProviderProps) {
       clearTimeout(timeoutHandleRef.current);
       timeoutHandleRef.current = null;
     }
-  }, [])
+  }, []);
 
   const show = useCallback((options: ToastOptions) => {
-    const duration = options.duration ?? 3000; // Use default duration if not provided
+    const duration = options.duration ?? DEFAULT_DURATION;
+
     clearCurrentTimeout();
+
     setCurrentToast({
-      variant: options.variant ?? "info", // Default to "info" variant
+      variant: options.variant ?? "info",
       ...options,
       duration,
-    })
+    });
+
     timeoutHandleRef.current = setTimeout(() => {
       setCurrentToast(null);
     }, duration).unref();
+  }, [clearCurrentTimeout]);
 
-  },[clearCurrentTimeout])
-
-  const value : ToastContextValue = {
-    show,
-  }
+  const value = useMemo(() => ({ show }), [show]);
 
   return (
     <ToastContext.Provider value={value}>
       {children}
       <Toast currentToast={currentToast} />
     </ToastContext.Provider>
-  )
-
-}
+  );
+};
 
 type ToastProps = {
   currentToast: ToastOptions | null;
-}
-
+};
 
 function Toast({ currentToast }: ToastProps) {
   const { width } = useTerminalDimensions();
+  const { colors } = useTheme();
 
   if (!currentToast) {
     return null;
   }
 
-
-  const variantColors : Record<ToastVariant, string> = {
-    success: "#82E0AA",
-    error: "#E74C5E",
-    info: "#56D6C2",
-  }
+  const variantColors: Record<ToastVariant, string> = {
+    success: colors.success,
+    error: colors.error,
+    info: colors.info,
+  };
 
   const borderColor = currentToast.variant
     ? variantColors[currentToast.variant]
     : variantColors.info;
 
-
-  return(
+  return (
     <box
       position="absolute"
       justifyContent="center"
@@ -94,16 +103,16 @@ function Toast({ currentToast }: ToastProps) {
       paddingRight={2}
       paddingTop={1}
       paddingBottom={1}
-      backgroundColor="#1A1A24"
+      backgroundColor={colors.surface}
       borderColor={borderColor}
-      border = {["left", "right"]}
-    > 
+      border={["left", "right"]}
+      customBorderChars={SplitBorderChars}
+    >
       <box flexDirection="column" gap={1} width="100%">
-        <text fg = "#E1E1E1" wrapMode="word" width="100%">
-          {currentToast.message} 
+        <text fg="#E1E1E1" wrapMode="word" width="100%">
+          {currentToast.message}
         </text>
       </box>
     </box>
-  )
-
-}
+  );
+};

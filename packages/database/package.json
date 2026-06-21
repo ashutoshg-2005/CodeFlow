@@ -1,0 +1,24 @@
+{
+  "name": "@codeflow/database",
+  "type": "module",
+  "private": "true",
+  "exports": {
+    "." : "./src/index.ts",
+    "./enums": "./src/enums.ts",
+    "./client": "./src/client.ts"
+  },
+
+  "scripts": {
+    "db:generate": "bunx prsima generate"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.20.0",
+    "prisma": "^7.8.0"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "dotenv": "^17.4.2",
+    "pg": "^8.22.0"
+  }
+}
