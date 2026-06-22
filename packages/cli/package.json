@@ -14,10 +14,11 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@codeflow/shared": "workspace:*",
     "@codeflow/database": "workspace:*",
+    "@codeflow/shared": "workspace:*",
     "@opentui/core": "^0.4.1",
     "@opentui/react": "^0.4.1",
+    "date-fns": "^4.4.0",
     "eventsource-parser": "^3.1.0",
     "hono": "^4.12.26",
     "opentui-spinner": "^0.0.7",

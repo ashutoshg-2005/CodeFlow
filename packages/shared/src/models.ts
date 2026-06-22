@@ -60,6 +60,7 @@ export const SUPPORTED_CHAT_MODELS = [
       outputUsdPerMillionTokens: 1.25,
     },
   },
+  
 ] as const satisfies readonly SupportedChatModelDefinition[];
 
 export type SupportedChatModel = (typeof SUPPORTED_CHAT_MODELS)[number];
@@ -69,4 +70,4 @@ export function findSupportedChatModel(modelId: string) {
   return SUPPORTED_CHAT_MODELS.find((model) => model.id === modelId);
 }
 
-export const DEFAULT_CHAT_MODEL_ID: SupportedChatModelId = "gpt-5.4";
+export const DEFAULT_CHAT_MODEL_ID: SupportedChatModelId = "gpt-5.4-mini";
