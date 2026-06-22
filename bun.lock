@@ -51,6 +51,7 @@
       "dependencies": {
         "@ai-sdk/anthropic": "^3.0.85",
         "@ai-sdk/openai": "^3.0.73",
+        "@ai-sdk/provider-utils": "4.0.30",
         "@codeflow/database": "workspace:*",
         "@codeflow/shared": "workspace:*",
         "@hono/zod-validator": "^0.8.0",
