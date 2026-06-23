@@ -1,12 +1,13 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, unlinkSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { CONFIG_DIR_NAME } from "./constants";
 
 type AuthData = {
   token: string;
 };
 
-const AUTH_DIR = join(homedir(), ".nightcode");
+const AUTH_DIR = join(homedir(), CONFIG_DIR_NAME);
 const AUTH_FILE = join(AUTH_DIR, "auth.json");
 
 

@@ -3,7 +3,7 @@ import type { AppType } from "@codeflow/server";
 import { clearAuth, getAuth } from "./auth";
 
 export const apiClient = hc<AppType>(
-  process.env.API_URL ?? "http://localhost:3000",
+  process.env.API_URL!,
   {
     fetch: async (
       input: Parameters<typeof fetch>[0],

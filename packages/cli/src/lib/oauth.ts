@@ -37,7 +37,7 @@ function getErrorMessage(error: unknown) {
 export async function performLogin() {
   const clerkFrontendApi = process.env.CLERK_FRONTEND_API;
   const clientId = process.env.CLERK_OAUTH_CLIENT_ID;
-  const apiUrl = process.env.API_URL ?? "http://localhost:3000";
+  const apiUrl = process.env.API_URL;
 
   if (!clerkFrontendApi) throw new Error("CLERK_FRONTEND_API not set");
   if (!clientId) throw new Error("CLERK_OAUTH_CLIENT_ID not set");
