@@ -4,10 +4,15 @@
   "workspaces": ["packages/*"],
   "scripts": {
     "dev:cli": "bun run --watch packages/cli/src/index.tsx",
-    "dev:server": "bun run --hot packages/server/src/index.ts"
+    "dev:server": "bun run --hot packages/server/src/index.ts",
+    "build:cli": "bun run --filter @codeflow/cli build",
+    "link:cli": "bun run build:cli && bun run scripts/link-cli.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
     "@types/react": "^19.2.17"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2"
   }
 }

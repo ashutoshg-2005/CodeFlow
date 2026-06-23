@@ -4,6 +4,9 @@
   "workspaces": {
     "": {
       "name": "CodeFlow",
+      "dependencies": {
+        "dotenv": "^17.4.2",
+      },
       "devDependencies": {
         "@types/bun": "latest",
         "@types/react": "^19.2.17",
