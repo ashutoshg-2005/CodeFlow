@@ -1,7 +1,7 @@
 import { TextAttributes } from "@opentui/core";
 import { useTheme } from "../providers/theme";
 import { usePromptConfig } from "../providers/prompt-config";
-import { Mode } from "@codeflow/database/enums";
+import { Mode } from "@codeflow/shared";
 
 export function StatusBar() {
   const { mode, model } = usePromptConfig();
