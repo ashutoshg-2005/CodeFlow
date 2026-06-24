@@ -1,146 +1,165 @@
-# 🚀 CodeFlow
+# CodeFlow
 
-CodeFlow is a high-performance, terminal-based AI coding assistant built with **Bun**, **React (OpenTUI)**, and **Hono**. It enables a seamless interactive CLI experience for AI-native development, allowing you to **PLAN** complex architectures or **BUILD** directly in your environment.
+CodeFlow is a terminal-based AI coding assistant. It provides an interactive
+command-line interface for working with large language models directly inside a
+project, with two distinct modes of operation: a read-only planning mode for
+analysis and design, and a build mode for making changes to the codebase.
 
----
+The application is built with Bun, React (rendered to the terminal via OpenTUI),
+and Hono, and persists conversation history in PostgreSQL through Prisma.
 
-## ✨ Features
+## Installation
 
-- 🖥️ **Interactive Terminal UI**: Built with React and OpenTUI for a modern, fluid CLI experience.
-- 🌊 **Streaming SSE Chat**: Real-time communication between CLI and Server using Server-Sent Events.
-- 🏗️ **Dual Operational Modes**:
-  - **PLAN**: Read-only exploration. Analyze codebases, propose designs, and explore files safely.
-  - **BUILD**: Implementation mode. Edit files, run shell commands, and execute your plan.
-- 💾 **Session Persistence**: Complete session history stored in PostgreSQL via Prisma.
-- 🛠️ **Powerful Tooling**: Full access to the filesystem (read/write/edit), grep, glob, and bash execution.
-- 🧩 **Shared Architecture**: Unified Zod schemas and TypeScript types shared across CLI, Server, and Database.
+CodeFlow requires [Bun](https://bun.sh/) to be installed.
 
----
+Install the CLI globally from npm:
 
-## 🏗️ Project Structure
-
-CodeFlow is organized as a monorepo using Bun Workspaces:
-
-```txt
-packages/
-├── cli/        # React-based Terminal UI client
-├── server/     # Hono API & AI orchestration (OpenAI/Anthropic)
-├── database/   # Prisma schema & generated clients
-└── shared/     # Unified Zod schemas, types, and model definitions
+```bash
+npm install -g codeflow-ai
 ```
 
----
+Then run it from any project directory:
 
-## 📊 Schemas & Data Model
+```bash
+codeflow
+```
 
-### 🗄️ Database Schema (Prisma)
+No additional configuration is required. The published CLI ships with the
+production server and authentication settings built in, so the first run will
+prompt you to sign in and then start an interactive session.
 
-The persistent layer is managed by Prisma and PostgreSQL. The primary model is the **Session**:
+## Usage
 
-| Field       | Type            | Description                                          |
-| :---------- | :-------------- | :--------------------------------------------------- |
-| `id`        | `String (CUID)` | Unique identifier for the session                    |
-| `title`     | `String`        | Human-readable title for the session                 |
-| `messages`  | `Json`          | Array of message objects (Role, Content, Tool Calls) |
-| `createdAt` | `DateTime`      | Timestamp of creation                                |
-| `updatedAt` | `DateTime`      | Last modification timestamp                          |
+Running `codeflow` launches an interactive terminal interface where you converse
+with the assistant. Two modes are available:
 
-### 🔍 Validation Schemas (Zod)
+- **Plan** — Read-only analysis. The assistant can read files, search the
+  codebase, and propose changes, but cannot modify anything. Use this for
+  exploring an unfamiliar codebase, reviewing architecture, or designing an
+  approach before implementing it.
+- **Build** — Implementation. The assistant can create and edit files and run
+  shell commands in addition to all read-only capabilities. Use this to carry
+  out changes.
 
-Located in `packages/shared/src/schemas.ts`, these define the contract between the Assistant and the CLI tools:
+Conversation history is persisted, so sessions can be revisited and continued.
 
-- **ModeType**: `PLAN` | `BUILD`
-- **Tool Contracts**:
-  - `readFile`: `{ path: string }`
-  - `writeFile`: `{ path: string, content: string }`
-  - `editFile`: `{ path: string, oldString: string, newString: string }`
-  - `bash`: `{ command: string, timeout?: number }`
-  - `listDirectory`, `glob`, `grep`.
+## Architecture
 
----
+CodeFlow is a monorepo managed with Bun workspaces:
 
-- **[Bun](https://bun.sh/)** (Latest)
+```
+packages/
+  cli/        Terminal UI client (React + OpenTUI)
+  server/     HTTP API and model orchestration (Hono, AI SDK)
+  database/   Prisma schema and generated client
+  shared/     Shared Zod schemas, types, and model definitions
+```
 
-### ⚙️ Quick Start (Global Installation)
+- **CLI** renders the interactive terminal interface and communicates with the
+  server over HTTP, consuming streamed responses via Server-Sent Events.
+- **Server** exposes the REST/SSE API, orchestrates model calls through the AI
+  SDK (OpenAI and Anthropic providers), enforces the tool set permitted by the
+  current mode, and reads and writes session state.
+- **Database** stores sessions and message history.
+- **Shared** holds the Zod schemas and TypeScript types used as the contract
+  between the CLI, the server, and the database.
 
-1. **Install globally**:
+## Data model
 
-   ```bash
-   git clone https://github.com/ashutoshg-2005/CodeFlow.git
-   cd CodeFlow
-   bun install
-   bun run link:cli
-   ```
+Sessions are the primary persisted entity:
 
-2. **Configure Environment**:
-   Ensure the following environment variables are set (e.g., in your `.bashrc`, `.zshrc`, or a local `.env` file):
+| Field       | Type          | Description                                  |
+| ----------- | ------------- | -------------------------------------------- |
+| `id`        | `String` (CUID) | Unique session identifier                  |
+| `title`     | `String`      | Human-readable session title                 |
+| `messages`  | `Json`        | Ordered message objects (role, content, tools) |
+| `createdAt` | `DateTime`    | Creation timestamp                           |
+| `updatedAt` | `DateTime`    | Last modification timestamp                  |
 
-   ```bash
-   export API_URL=https://codeflowserver-production.up.railway.app
-   export CLERK_FRONTEND_API=https://your-clerk-frontend-api
-   export CLERK_OAUTH_CLIENT_ID=your-clerk-client-id
-   ```
+## Tools
 
-3. **Run it**:
-   Simply type `codeflow` in any directory.
+The assistant operates through a fixed set of tools, defined and validated in
+`packages/shared/src/schemas.ts`. The available tools depend on the active mode.
 
----
+Available in both Plan and Build modes:
 
-## 🛠️ Development & Running Locally
+- `readFile` — read a file's contents
+- `listDirectory` — list directory entries
+- `glob` — match files by pattern
+- `grep` — search file contents
 
-If you want to contribute or run your own instance:
+Available in Build mode only:
 
-### 📡 Backend Setup
+- `writeFile` — create or overwrite a file
+- `editFile` — replace a string within a file
+- `bash` — run a shell command
 
-1. **Configure Environment**:
-   Copy `.env.example` to `.env` and fill in your credentials.
-2. **Database Setup**:
+## Local development
+
+Running your own instance requires the backend and database in addition to the
+CLI.
+
+### Prerequisites
+
+- Bun
+- A PostgreSQL database
+- API keys for the model providers you intend to use (OpenAI and/or Anthropic)
+
+### Backend setup
+
+1. Copy `.env.example` to `.env` and fill in the required values (database URL,
+   provider API keys, and authentication credentials).
+2. Generate the Prisma client and apply the schema:
+
    ```bash
    bun run --cwd packages/database db:generate
    bunx prisma db push --schema packages/database/prisma/schema.prisma
    ```
-3. **Run Server**:
+
+3. Start the server:
+
    ```bash
    bun run dev:server
    ```
 
-### 💻 CLI Development
+### CLI development
 
-To point the CLI to a local server:
+Point the CLI at your local server and run it in watch mode:
 
 ```bash
 export API_URL=http://localhost:3000
 bun run dev:cli
 ```
 
-## 🧠 Modes of Operation
+The CLI's built-in production defaults can be overridden with the `API_URL`,
+`CLERK_FRONTEND_API`, and `CLERK_OAUTH_CLIENT_ID` environment variables (set in
+your shell or a `.env` file in the working directory) to target your own server
+and authentication instance.
 
-### 🗺️ PLAN Mode
+To build and symlink the CLI locally so the `codeflow` command runs your working
+copy:
 
-Best for brainstorming and architecture.
+```bash
+bun run link:cli
+```
 
-- **Read-only**: Assistant can see your code but cannot modify it.
-- **Tools**: `readFile`, `listDirectory`, `glob`, `grep`.
+## Scripts
 
-### ⚒️ BUILD Mode
+From the repository root:
 
-Best for implementation.
+- `bun run dev:server` — start the API server in watch mode
+- `bun run dev:cli` — start the terminal interface in watch mode
+- `bun run build:cli` — build the CLI bundle
+- `bun run link:cli` — build and symlink the CLI for local use
 
-- **Write Access**: Assistant can create/edit files and run commands.
-- **Tools**: All PLAN tools + `writeFile`, `editFile`, `bash`.
+## Tech stack
 
----
+- **Runtime:** Bun
+- **CLI:** React, OpenTUI, React Router
+- **Server:** Hono, AI SDK (OpenAI and Anthropic providers), Zod
+- **Database:** Prisma, PostgreSQL
+- **Authentication and billing:** Clerk, Polar
 
-## 🛠️ Tech Stack
+## License
 
-- **Runtime**: Bun
-- **Frontend**: React, OpenTUI, React Router
-- **Backend**: Hono, Zod, AI SDK
-- **Database**: Prisma, PostgreSQL
-- **Auth & Payments**: Clerk, Polar.sh
-
----
-
-## 📜 License
-
-[MIT](LICENSE)
+MIT

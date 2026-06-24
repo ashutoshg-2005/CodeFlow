@@ -1,9 +1,10 @@
 import prettyMs from "pretty-ms";
+import { useMemo } from "react";
 import { EmptyBorder } from "../border";
 import { useTheme } from "../../providers/theme";
 import type { Message } from "../../hooks/use-chat";
 import { Mode, type ModeType } from "@codeflow/shared";
-import { TextAttributes } from "@opentui/core";
+import { TextAttributes, SyntaxStyle } from "@opentui/core";
 
 type ClientMessagePart = Message["parts"][number];
 type ToolPart = Extract<ClientMessagePart, { type: `tool-${string}` | "dynamic-tool" }>;
@@ -65,6 +66,8 @@ export function BotMessage({
   streaming = false,
 }: Props) {
   const { colors } = useTheme();
+  // A single shared SyntaxStyle for markdown code-block highlighting.
+  const syntaxStyle = useMemo(() => SyntaxStyle.create(), []);
   return (
     <box width="100%" alignItems="center">
       {groupConsecutiveParts(parts).map((group, i) => (
@@ -121,7 +124,11 @@ export function BotMessage({
             if (part.type === "text") {
               return (
                 <box key={`text-${j}`} paddingX={3} width="100%">
-                  <text>{part.text}</text>
+                  <markdown
+                    content={part.text}
+                    syntaxStyle={syntaxStyle}
+                    streaming={streaming}
+                  />
                 </box>
               );
             }

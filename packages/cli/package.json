@@ -1,14 +1,35 @@
 {
-  "name": "@codeflow/cli",
+  "name": "codeflow-ai",
+  "version": "1.0.1",
+  "description": "Terminal-based AI coding assistant. Plan and build with LLMs directly from your terminal.",
+  "keywords": [
+    "ai",
+    "cli",
+    "coding-assistant",
+    "terminal",
+    "llm",
+    "openai",
+    "anthropic"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ashutoshg-2005/CodeFlow.git",
+    "directory": "packages/cli"
+  },
   "module": "src/index.tsx",
   "type": "module",
-  "private": true,
   "bin": {
     "codeflow": "./bin/codeflow"
   },
+  "files": [
+    "bin/",
+    "dist/"
+  ],
   "scripts": {
     "dev": "bun run --watch src/index.tsx",
-    "build": "bun build src/index.tsx --outdir dist --target bun --packages external"
+    "build": "bun build src/index.tsx --outdir dist --target bun --external react --external @opentui/core --external @opentui/react --external react-router --external hono --external ai --external @ai-sdk/react --external zod --external open --external date-fns --external pretty-ms --external opentui-spinner --external dotenv",
+    "prepublishOnly": "bun run build"
   },
   "devDependencies": {
     "@codeflow/server": "workspace:*",
@@ -19,11 +40,11 @@
   },
   "dependencies": {
     "@ai-sdk/react": "^3.0.210",
-    "@codeflow/shared": "workspace:*",
     "@opentui/core": "^0.4.1",
     "@opentui/react": "^0.4.1",
     "ai": "^6.0.208",
     "date-fns": "^4.4.0",
+    "dotenv": "^17.4.2",
     "hono": "^4.12.26",
     "open": "^11.0.0",
     "opentui-spinner": "^0.0.7",

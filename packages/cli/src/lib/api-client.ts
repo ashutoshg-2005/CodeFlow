@@ -1,9 +1,10 @@
 import { hc } from "hono/client";
 import type { AppType } from "@codeflow/server";
 import { clearAuth, getAuth } from "./auth";
+import { API_URL } from "./constants";
 
 export const apiClient = hc<AppType>(
-  process.env.API_URL!,
+  API_URL,
   {
     fetch: async (
       input: Parameters<typeof fetch>[0],
