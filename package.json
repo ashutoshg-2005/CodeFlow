@@ -5,7 +5,7 @@
   "scripts": {
     "dev:cli": "bun run --watch packages/cli/src/index.tsx",
     "dev:server": "bun run --hot packages/server/src/index.ts",
-    "build:cli": "bun run --filter @codeflow/cli build",
+    "build:cli": "bun run --filter codeflow-ai build",
     "link:cli": "bun run build:cli && bun run scripts/link-cli.ts"
   },
   "devDependencies": {

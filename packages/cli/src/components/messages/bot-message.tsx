@@ -126,8 +126,10 @@ export function BotMessage({
                 <box key={`text-${j}`} paddingX={3} width="100%">
                   <markdown
                     content={part.text}
+                    conceal
                     syntaxStyle={syntaxStyle}
                     streaming={streaming}
+                    width="100%"
                   />
                 </box>
               );
