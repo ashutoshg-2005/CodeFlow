@@ -16,7 +16,7 @@ export const CONFIG_DIR_NAME = ".codeflow";
  * Frontend API origin, and a public OAuth client id) — no secrets are embedded.
  */
 export const API_URL =
-  process.env.API_URL ?? "https://codeflowserver-production.up.railway.app";
+  process.env.API_URL ?? "https://codeflow-ye7c.onrender.com";
 
 export const CLERK_FRONTEND_API =
   process.env.CLERK_FRONTEND_API ?? "https://large-quetzal-57.clerk.accounts.dev";
