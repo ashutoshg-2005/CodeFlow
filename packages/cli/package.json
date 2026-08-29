@@ -1,6 +1,6 @@
 {
   "name": "codeflow-ai",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Terminal-based AI coding assistant. Plan and build with LLMs directly from your terminal.",
   "keywords": [
     "ai",
