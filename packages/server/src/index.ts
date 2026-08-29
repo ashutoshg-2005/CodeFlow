@@ -33,4 +33,4 @@ const routes = app
 
 export type AppType = typeof routes;
 // idleTimeout must be high, otherwise LLM tool calls might not complete
-export default { port: 3000, fetch: app.fetch, idleTimeout: 255 };
+export default { port: Number(process.env.PORT) || 3000, fetch: app.fetch, idleTimeout: 255 };
