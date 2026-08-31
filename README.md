@@ -45,6 +45,12 @@ Conversation history is persisted, so sessions can be revisited and continued.
 
 ## Architecture
 
+![CodeFlow architecture](docs/architecture.svg)
+
+An interactive version of this diagram — with guided views, relationship
+tracing, and links to the source files behind each component — is available at
+[`docs/architecture.html`](docs/architecture.html); open it in a browser.
+
 CodeFlow is a monorepo managed with Bun workspaces:
 
 ```
