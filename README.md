@@ -51,15 +51,42 @@ An interactive version of this diagram — with guided views, relationship
 tracing, and links to the source files behind each component — is available at
 [`docs/architecture.html`](docs/architecture.html); open it in a browser.
 
-Four companion diagrams cover the system from other angles. Each is a
-self-contained HTML file using the same viewer:
+Four companion diagrams cover the system from other angles. Each has an
+interactive HTML version alongside it.
 
-| Diagram | What it shows |
-| ------- | ------------- |
-| [Assistant turn](docs/workflow.html) | A prompt moving through the auth and credit gates, the model, the local tool loop, and persistence |
-| [Sign-in sequence](docs/sequence.html) | The OAuth 2.0 and PKCE exchange between the CLI, its loopback listener, the browser, and Clerk |
-| [Session data flow](docs/dataflow.html) | Where a message goes: validation, assembly, the Postgres row, and token usage becoming credits |
-| [Session lifecycle](docs/lifecycle.html) | The states a session moves through, including tool suspension and recovery from a failed turn |
+### Assistant turn
+
+A prompt moving through the auth and credit gates, the model, the local tool
+loop, and persistence — plus the paths that reject a turn before any tokens are
+spent. Interactive: [`docs/workflow.html`](docs/workflow.html)
+
+![CodeFlow assistant turn](docs/workflow.svg)
+
+### Sign-in sequence
+
+The OAuth 2.0 and PKCE exchange between the CLI, the loopback listener it opens
+on a random port, the browser, and Clerk. Interactive:
+[`docs/sequence.html`](docs/sequence.html)
+
+![CodeFlow sign-in sequence](docs/sequence.svg)
+
+### Session data flow
+
+Where a message goes: shared Zod validation, the assembled turn, the Postgres
+JSON column, and token usage becoming billable credits. Interactive:
+[`docs/dataflow.html`](docs/dataflow.html)
+
+![CodeFlow session data flow](docs/dataflow.svg)
+
+### Session lifecycle
+
+The states a session moves through, including suspension while a tool runs
+locally and recovery from a failed turn. Interactive:
+[`docs/lifecycle.html`](docs/lifecycle.html)
+
+![CodeFlow session lifecycle](docs/lifecycle.svg)
+
+### Packages
 
 CodeFlow is a monorepo managed with Bun workspaces:
 
