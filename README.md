@@ -51,6 +51,16 @@ An interactive version of this diagram — with guided views, relationship
 tracing, and links to the source files behind each component — is available at
 [`docs/architecture.html`](docs/architecture.html); open it in a browser.
 
+Four companion diagrams cover the system from other angles. Each is a
+self-contained HTML file using the same viewer:
+
+| Diagram | What it shows |
+| ------- | ------------- |
+| [Assistant turn](docs/workflow.html) | A prompt moving through the auth and credit gates, the model, the local tool loop, and persistence |
+| [Sign-in sequence](docs/sequence.html) | The OAuth 2.0 and PKCE exchange between the CLI, its loopback listener, the browser, and Clerk |
+| [Session data flow](docs/dataflow.html) | Where a message goes: validation, assembly, the Postgres row, and token usage becoming credits |
+| [Session lifecycle](docs/lifecycle.html) | The states a session moves through, including tool suspension and recovery from a failed turn |
+
 CodeFlow is a monorepo managed with Bun workspaces:
 
 ```

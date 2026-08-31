@@ -1,0 +1,256 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "CodeFlow Assistant Turn",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "output": "workflow.html",
+    "views": [
+      {
+        "id": "happy-turn",
+        "label": "Successful turn",
+        "focus": [
+          "prompt",
+          "cli",
+          "gate",
+          "assemble",
+          "provider",
+          "persist"
+        ],
+        "note": "A prompt clears both gates, streams from the provider, and is written once the turn finishes."
+      },
+      {
+        "id": "tool-loop",
+        "label": "Tool loop",
+        "focus": [
+          "assemble",
+          "provider",
+          "execute"
+        ],
+        "note": "Tool contracts have no server-side execute; every call runs on the developer machine and returns."
+      },
+      {
+        "id": "rejections",
+        "label": "Rejected turns",
+        "focus": [
+          "gate",
+          "assemble",
+          "reject"
+        ],
+        "note": "Auth, credits, and session ownership each reject before any model tokens are spent."
+      }
+    ]
+  },
+  "lanes": [
+    {
+      "id": "dev",
+      "label": "Developer machine"
+    },
+    {
+      "id": "api",
+      "label": "CodeFlow API · Hono on Bun"
+    },
+    {
+      "id": "model",
+      "label": "Model provider"
+    }
+  ],
+  "phases": [
+    {
+      "id": "submit",
+      "label": "Submit",
+      "fromCol": 0,
+      "toCol": 1
+    },
+    {
+      "id": "guard",
+      "label": "Guard",
+      "fromCol": 2,
+      "toCol": 3,
+      "variant": "security"
+    },
+    {
+      "id": "run",
+      "label": "Stream · tools · persist",
+      "fromCol": 4,
+      "toCol": 5,
+      "variant": "emphasis"
+    }
+  ],
+  "mainPath": [
+    "prompt",
+    "cli",
+    "gate",
+    "assemble",
+    "provider",
+    "persist"
+  ],
+  "nodes": [
+    {
+      "id": "prompt",
+      "lane": "dev",
+      "col": 0,
+      "type": "external",
+      "label": "Developer Prompt",
+      "sublabel": "plan or build mode",
+      "width": 140
+    },
+    {
+      "id": "cli",
+      "lane": "dev",
+      "col": 1,
+      "type": "frontend",
+      "label": "CodeFlow CLI",
+      "sublabel": "posts turn · renders SSE",
+      "width": 140
+    },
+    {
+      "id": "execute",
+      "lane": "dev",
+      "col": 5,
+      "type": "messagebus",
+      "label": "Run Tool Locally",
+      "sublabel": "read · grep · edit · bash",
+      "width": 140
+    },
+    {
+      "id": "gate",
+      "lane": "api",
+      "col": 2,
+      "type": "security",
+      "label": "Auth + Credits",
+      "sublabel": "Hono middleware",
+      "width": 140
+    },
+    {
+      "id": "assemble",
+      "lane": "api",
+      "col": 3,
+      "type": "backend",
+      "label": "Assemble Turn",
+      "sublabel": "merge · validate · tools",
+      "width": 140
+    },
+    {
+      "id": "persist",
+      "lane": "api",
+      "col": 5,
+      "type": "database",
+      "label": "Persist + Meter",
+      "sublabel": "Postgres row · Polar credits",
+      "width": 140
+    },
+    {
+      "id": "provider",
+      "lane": "model",
+      "col": 4,
+      "type": "external",
+      "label": "Model Provider",
+      "sublabel": "streamText · OpenAI or Anthropic",
+      "width": 140
+    },
+    {
+      "id": "reject",
+      "lane": "dev",
+      "col": 4,
+      "type": "security",
+      "label": "Rejected",
+      "sublabel": "401 · 402 · 404",
+      "width": 140
+    }
+  ],
+  "edges": [
+    {
+      "id": "prompt-cli",
+      "from": "prompt",
+      "to": "cli",
+      "label": "submit turn"
+    },
+    {
+      "id": "cli-gate",
+      "from": "cli",
+      "to": "gate",
+      "label": "Bearer token",
+      "variant": "security"
+    },
+    {
+      "id": "gate-assemble",
+      "from": "gate",
+      "to": "assemble",
+      "label": "userId",
+      "variant": "emphasis"
+    },
+    {
+      "id": "assemble-provider",
+      "from": "assemble",
+      "to": "provider",
+      "label": "streamText",
+      "variant": "emphasis"
+    },
+    {
+      "id": "provider-execute",
+      "from": "provider",
+      "to": "execute",
+      "label": "tool call",
+      "role": "branch"
+    },
+    {
+      "id": "execute-assemble",
+      "from": "execute",
+      "to": "assemble",
+      "label": "tool result",
+      "variant": "dashed",
+      "role": "return"
+    },
+    {
+      "id": "provider-persist",
+      "from": "provider",
+      "to": "persist",
+      "label": "onFinish",
+      "variant": "emphasis"
+    },
+    {
+      "id": "gate-reject",
+      "from": "gate",
+      "to": "reject",
+      "label": "401 · 402",
+      "variant": "security",
+      "role": "error"
+    },
+    {
+      "id": "assemble-reject",
+      "from": "assemble",
+      "to": "reject",
+      "label": "404",
+      "variant": "security",
+      "role": "error"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Client side",
+      "items": [
+        "The prompt and every tool call run on the developer machine",
+        "Responses arrive as Server-Sent Events and render incrementally"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Gates before spend",
+      "items": [
+        "requireAuth rejects a missing or invalid token with 401",
+        "requireCreditsBalance rejects an empty balance with 402"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Finishing a turn",
+      "items": [
+        "Messages persist only once no tool call is still pending",
+        "An aborted turn is neither written nor metered"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,237 @@
+{
+  "schema_version": 1,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "CodeFlow Session Lifecycle",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "output": "lifecycle.html",
+    "viewBox": [
+      1060,
+      566
+    ],
+    "views": [
+      {
+        "id": "main-rail",
+        "label": "Main rail",
+        "focus": [
+          "launch",
+          "signin",
+          "ready",
+          "streaming",
+          "persisted"
+        ],
+        "note": "Launch, sign in once, then alternate between an idle session and a streaming turn."
+      },
+      {
+        "id": "suspension",
+        "label": "Inside a turn",
+        "focus": [
+          "streaming",
+          "toolwait",
+          "persisted"
+        ],
+        "note": "A turn suspends while a tool runs locally and resumes when the result returns."
+      },
+      {
+        "id": "recovery",
+        "label": "Recovery",
+        "focus": [
+          "streaming",
+          "error",
+          "ready"
+        ],
+        "note": "A failed turn is recoverable: the stored history is untouched and the session returns to ready."
+      }
+    ]
+  },
+  "lanes": [
+    {
+      "id": "main",
+      "label": "Session phases"
+    },
+    {
+      "id": "waiting",
+      "label": "Suspended"
+    },
+    {
+      "id": "recovery",
+      "label": "Recoverable failures"
+    }
+  ],
+  "states": [
+    {
+      "id": "launch",
+      "type": "start",
+      "label": "Launch",
+      "sublabel": "codeflow in a project",
+      "lane": "main",
+      "col": 0,
+      "step": "01",
+      "tag": "entry"
+    },
+    {
+      "id": "signin",
+      "type": "active",
+      "label": "Signing In",
+      "sublabel": "browser OAuth",
+      "lane": "main",
+      "col": 1,
+      "step": "02",
+      "tag": "first run"
+    },
+    {
+      "id": "ready",
+      "type": "active",
+      "label": "Session Ready",
+      "sublabel": "new or resumed",
+      "lane": "main",
+      "col": 2,
+      "step": "03",
+      "tag": "idle"
+    },
+    {
+      "id": "streaming",
+      "type": "active",
+      "label": "Streaming Turn",
+      "sublabel": "SSE tokens",
+      "lane": "main",
+      "col": 3,
+      "step": "04",
+      "tag": "live"
+    },
+    {
+      "id": "persisted",
+      "type": "success",
+      "label": "Turn Persisted",
+      "sublabel": "written and metered",
+      "lane": "main",
+      "col": 4,
+      "step": "05",
+      "tag": "durable"
+    },
+    {
+      "id": "error",
+      "type": "failure",
+      "label": "Turn Failed",
+      "sublabel": "stream or tool error",
+      "lane": "recovery",
+      "col": 0,
+      "tag": "retryable"
+    },
+    {
+      "id": "toolwait",
+      "type": "waiting",
+      "label": "Tool Running",
+      "sublabel": "local execution",
+      "lane": "waiting",
+      "col": 1,
+      "tag": "suspended"
+    }
+  ],
+  "transitions": [
+    {
+      "id": "streaming-toolwait",
+      "from": "streaming",
+      "to": "toolwait",
+      "label": "tool call",
+      "labelDy": 24,
+      "fromSide": "bottom",
+      "toSide": "top",
+      "route": "straight"
+    },
+    {
+      "id": "toolwait-streaming",
+      "from": "toolwait",
+      "to": "streaming",
+      "label": "result",
+      "variant": "dashed",
+      "fromSide": "right",
+      "toSide": "right",
+      "via": [
+        [
+          633,
+          307
+        ],
+        [
+          633,
+          157
+        ]
+      ]
+    },
+    {
+      "id": "streaming-error",
+      "from": "streaming",
+      "to": "error",
+      "label": "error",
+      "variant": "security",
+      "fromSide": "left",
+      "toSide": "right",
+      "via": [
+        [
+          480,
+          157
+        ],
+        [
+          480,
+          307
+        ]
+      ]
+    },
+    {
+      "id": "error-ready",
+      "from": "error",
+      "to": "ready",
+      "label": "retry",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "route": "straight"
+    },
+    {
+      "id": "persisted-ready",
+      "from": "persisted",
+      "to": "ready",
+      "label": "next turn",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "top",
+      "via": [
+        [
+          710,
+          80
+        ],
+        [
+          402,
+          80
+        ]
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Main rail",
+      "items": [
+        "Sign-in happens once; a cached token sends later launches straight to a ready session",
+        "A persisted turn returns to Ready rather than ending the session"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Suspension",
+      "items": [
+        "A turn suspends while a tool runs on the developer machine",
+        "The server holds the stream open, so idleTimeout is raised to 255 seconds"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Recovery",
+      "items": [
+        "A failed turn leaves the stored history untouched and can be retried",
+        "A 401 clears the cached token, which sends the next launch back through sign-in"
+      ]
+    }
+  ]
+}

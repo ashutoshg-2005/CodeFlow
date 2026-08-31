@@ -1,0 +1,241 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "CodeFlow Sign-In Sequence",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "column_fit": "spread",
+    "output": "sequence.html",
+    "viewBox": [
+      1080,
+      575
+    ],
+    "views": [
+      {
+        "id": "launch",
+        "label": "Launch and consent",
+        "focus": [
+          "cli",
+          "loopback",
+          "browser",
+          "clerk"
+        ],
+        "note": "The CLI opens a loopback listener, then hands the user to the browser for consent."
+      },
+      {
+        "id": "handoff",
+        "label": "Hosted callback",
+        "focus": [
+          "browser",
+          "api",
+          "loopback"
+        ],
+        "note": "Clerk redirects to one fixed hosted URL, which bounces the code to the port the CLI is listening on."
+      },
+      {
+        "id": "exchange",
+        "label": "Token exchange",
+        "focus": [
+          "loopback",
+          "clerk"
+        ],
+        "note": "The authorization code is redeemed with the PKCE verifier the CLI never sent anywhere."
+      }
+    ]
+  },
+  "participants": [
+    {
+      "id": "cli",
+      "type": "frontend",
+      "label": "CodeFlow CLI",
+      "sublabel": "performLogin()"
+    },
+    {
+      "id": "loopback",
+      "type": "backend",
+      "label": "Loopback Server",
+      "sublabel": "Bun.serve · port 0"
+    },
+    {
+      "id": "browser",
+      "type": "external",
+      "label": "Browser",
+      "sublabel": "system default"
+    },
+    {
+      "id": "clerk",
+      "type": "security",
+      "label": "Clerk",
+      "sublabel": "OAuth 2.0 provider"
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "CodeFlow API",
+      "sublabel": "/auth/callback"
+    }
+  ],
+  "segments": [
+    {
+      "from": 175,
+      "to": 233,
+      "label": "Launch"
+    },
+    {
+      "from": 238,
+      "to": 408,
+      "label": "Browser consent"
+    },
+    {
+      "from": 413,
+      "to": 465,
+      "label": "Token exchange"
+    }
+  ],
+  "messages": [
+    {
+      "id": "start-listener",
+      "from": "cli",
+      "to": "loopback",
+      "y": 190,
+      "label": "listen on random port",
+      "variant": "default"
+    },
+    {
+      "id": "open-authorize",
+      "from": "cli",
+      "to": "browser",
+      "y": 219,
+      "label": "open authorize URL",
+      "variant": "emphasis",
+      "note": "state carries the loopback port and a nonce"
+    },
+    {
+      "id": "authorize",
+      "from": "browser",
+      "to": "clerk",
+      "y": 248,
+      "label": "authorize · S256 challenge",
+      "variant": "security"
+    },
+    {
+      "id": "consent-redirect",
+      "from": "clerk",
+      "to": "browser",
+      "y": 277,
+      "label": "redirect with code",
+      "variant": "return"
+    },
+    {
+      "id": "hosted-callback",
+      "from": "browser",
+      "to": "api",
+      "y": 306,
+      "label": "GET /auth/callback",
+      "variant": "default"
+    },
+    {
+      "id": "bounce-local",
+      "from": "api",
+      "to": "browser",
+      "y": 335,
+      "label": "302 to localhost:port",
+      "variant": "return"
+    },
+    {
+      "id": "deliver-code",
+      "from": "browser",
+      "to": "loopback",
+      "y": 364,
+      "label": "code + state",
+      "variant": "default",
+      "note": "nonce is compared before the code is used"
+    },
+    {
+      "id": "redeem-code",
+      "from": "loopback",
+      "to": "clerk",
+      "y": 393,
+      "label": "exchange code + verifier",
+      "variant": "security"
+    },
+    {
+      "id": "access-token",
+      "from": "clerk",
+      "to": "loopback",
+      "y": 422,
+      "label": "access_token",
+      "variant": "return"
+    },
+    {
+      "id": "login-complete",
+      "from": "loopback",
+      "to": "cli",
+      "y": 451,
+      "label": "login complete",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "cli",
+      "from": 185,
+      "to": 458,
+      "type": "frontend"
+    },
+    {
+      "participant": "loopback",
+      "from": 185,
+      "to": 456,
+      "type": "backend"
+    },
+    {
+      "participant": "browser",
+      "from": 214,
+      "to": 369,
+      "type": "external"
+    },
+    {
+      "participant": "clerk",
+      "from": 243,
+      "to": 427,
+      "type": "security"
+    },
+    {
+      "participant": "api",
+      "from": 301,
+      "to": 340,
+      "type": "backend"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Local loopback",
+      "items": [
+        "Bun.serve binds port 0, so the port is only known at runtime",
+        "That port travels inside the OAuth state and comes back in the redirect",
+        "The listener stops as soon as the code arrives, or after five minutes"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Why PKCE",
+      "items": [
+        "A random verifier is hashed with SHA-256 into the challenge",
+        "Only the CLI holds the verifier, so an intercepted code cannot be redeemed",
+        "The state nonce is checked before the code is exchanged"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "After sign-in",
+      "items": [
+        "The token is written to ~/.codeflow/auth.json with owner-only permissions",
+        "Every API call replays it as a Bearer header",
+        "A 401 from any route clears the cached token and forces a new login"
+      ]
+    }
+  ]
+}

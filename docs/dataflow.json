@@ -1,0 +1,241 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "CodeFlow Session Data Flow",
+    "locale": "en",
+    "quality_profile": "showcase",
+    "output": "dataflow.html",
+    "viewBox": [
+      1068,
+      560
+    ],
+    "views": [
+      {
+        "id": "turn-lineage",
+        "label": "Turn lineage",
+        "focus": [
+          "prompt",
+          "toolout",
+          "contracts",
+          "assemble",
+          "sessionrow"
+        ],
+        "note": "Prompt text and tool output become one validated message array, stored as a single JSON column."
+      },
+      {
+        "id": "usage-to-credits",
+        "label": "Usage to credits",
+        "focus": [
+          "assemble",
+          "usage",
+          "ledger",
+          "gate"
+        ],
+        "note": "Token counts are priced per model, rounded up to whole credits, and metered externally."
+      },
+      {
+        "id": "replay",
+        "label": "Replay",
+        "focus": [
+          "sessionrow",
+          "history"
+        ],
+        "note": "A stored session is read back in full and replayed into the terminal."
+      }
+    ]
+  },
+  "stages": [
+    {
+      "label": "Produced"
+    },
+    {
+      "label": "Validated"
+    },
+    {
+      "label": "Assembled"
+    },
+    {
+      "label": "Stored"
+    },
+    {
+      "label": "Consumed"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "prompt",
+      "type": "frontend",
+      "label": "Terminal Input",
+      "sublabel": "prompt · mode · model",
+      "stage": 0,
+      "row": 0,
+      "tag": "UI message"
+    },
+    {
+      "id": "toolout",
+      "type": "frontend",
+      "label": "Tool Output",
+      "sublabel": "file and shell results",
+      "stage": 0,
+      "row": 2,
+      "tag": "never leaves disk unread"
+    },
+    {
+      "id": "contracts",
+      "type": "security",
+      "label": "Zod Contracts",
+      "sublabel": "packages/shared",
+      "stage": 1,
+      "row": 1,
+      "tag": "shared types"
+    },
+    {
+      "id": "assemble",
+      "type": "backend",
+      "label": "Assembled Turn",
+      "sublabel": "merged message array",
+      "stage": 2,
+      "row": 0,
+      "tag": "ordered"
+    },
+    {
+      "id": "usage",
+      "type": "backend",
+      "label": "Token Usage",
+      "sublabel": "input + output counts",
+      "stage": 2,
+      "row": 2,
+      "tag": "per turn"
+    },
+    {
+      "id": "sessionrow",
+      "type": "database",
+      "label": "Session Row",
+      "sublabel": "messages JSON column",
+      "stage": 3,
+      "row": 0,
+      "tag": "Postgres"
+    },
+    {
+      "id": "ledger",
+      "type": "external",
+      "label": "Credit Ledger",
+      "sublabel": "Polar meter",
+      "stage": 3,
+      "row": 2,
+      "tag": "external"
+    },
+    {
+      "id": "history",
+      "type": "backend",
+      "label": "Session History",
+      "sublabel": "GET /sessions",
+      "stage": 4,
+      "row": 0,
+      "tag": "owner scoped"
+    },
+    {
+      "id": "gate",
+      "type": "security",
+      "label": "Credit Gate",
+      "sublabel": "next turn admission",
+      "stage": 4,
+      "row": 2,
+      "tag": "402 when empty"
+    }
+  ],
+  "flows": [
+    {
+      "id": "prompt-contracts",
+      "from": "prompt",
+      "to": "contracts",
+      "label": "prompt + mode",
+      "classification": "user input",
+      "variant": "emphasis"
+    },
+    {
+      "id": "toolout-contracts",
+      "from": "toolout",
+      "to": "contracts",
+      "label": "tool results",
+      "classification": "local file data"
+    },
+    {
+      "id": "contracts-assemble",
+      "from": "contracts",
+      "to": "assemble",
+      "label": "validated messages",
+      "classification": "typed",
+      "variant": "emphasis"
+    },
+    {
+      "id": "assemble-row",
+      "from": "assemble",
+      "to": "sessionrow",
+      "label": "finished turn",
+      "classification": "append to array",
+      "variant": "emphasis"
+    },
+    {
+      "id": "assemble-usage",
+      "from": "assemble",
+      "to": "usage",
+      "label": "provider totals",
+      "classification": "metadata",
+      "variant": "dashed",
+      "labelDy": 24
+    },
+    {
+      "id": "usage-ledger",
+      "from": "usage",
+      "to": "ledger",
+      "label": "priced credits",
+      "classification": "rounded up"
+    },
+    {
+      "id": "row-history",
+      "from": "sessionrow",
+      "to": "history",
+      "label": "stored transcript",
+      "classification": "read by owner"
+    },
+    {
+      "id": "ledger-gate",
+      "from": "ledger",
+      "to": "gate",
+      "label": "remaining balance",
+      "classification": "admission check",
+      "variant": "security"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "One contract, three packages",
+      "items": [
+        "The Zod schemas in packages/shared type the CLI, the server, and the stored rows",
+        "Tool output re-enters the same validated message array as the prompt",
+        "File contents and shell output are read locally and travel only as tool results"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "What Postgres holds",
+      "items": [
+        "A session row keeps the whole ordered message array in one JSON column",
+        "Writes happen once per turn, only when no tool call is still pending",
+        "Every read and write is scoped to the owning userId"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Usage becomes credits",
+      "items": [
+        "Token counts are priced per model, then converted at one credit per cent",
+        "Any non-zero cost rounds up, so a turn is never free by rounding",
+        "The gate reads the resulting balance before admitting the next turn"
+      ]
+    }
+  ]
+}
