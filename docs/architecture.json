@@ -1,0 +1,407 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "CodeFlow Architecture",
+    "locale": "en",
+    "output": "architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/ashutoshg-2005/CodeFlow",
+      "revision": "4e8c20b120bf9d0247d0f0578b9c4c0d579ef6f9"
+    },
+    "views": [
+      {
+        "id": "turn-loop",
+        "label": "Assistant turn",
+        "focus": [
+          "cli",
+          "gate",
+          "chat",
+          "anthropic",
+          "tools"
+        ],
+        "note": "The CLI posts a turn, the server streams it back, and tool calls execute on the developer machine."
+      },
+      {
+        "id": "sign-in",
+        "label": "Sign-in",
+        "focus": [
+          "cli",
+          "clerk",
+          "gate"
+        ],
+        "note": "Browser OAuth with PKCE; the token is cached locally and replayed as a Bearer header."
+      },
+      {
+        "id": "persist-and-bill",
+        "label": "Persistence and billing",
+        "focus": [
+          "chat",
+          "sessions",
+          "db",
+          "polar"
+        ],
+        "note": "Finished turns are written to Postgres and metered as credits in Polar."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "clerk",
+      "type": "security",
+      "label": "Clerk",
+      "sublabel": "OAuth 2.0 + PKCE",
+      "pos": [
+        400,
+        60
+      ],
+      "size": [
+        190,
+        70
+      ],
+      "sources": [
+        {
+          "path": "packages/cli/src/lib/oauth.ts"
+        },
+        {
+          "path": "packages/server/src/lib/auth.ts"
+        }
+      ]
+    },
+    {
+      "id": "polar",
+      "type": "external",
+      "label": "Polar",
+      "sublabel": "credits meter · checkout",
+      "pos": [
+        740,
+        60
+      ],
+      "size": [
+        190,
+        70
+      ],
+      "sources": [
+        {
+          "path": "packages/server/src/lib/polar.ts"
+        }
+      ]
+    },
+    {
+      "id": "openai",
+      "type": "external",
+      "label": "OpenAI",
+      "sublabel": "gpt-5.4 family",
+      "brand": "openai",
+      "pos": [
+        1080,
+        60
+      ],
+      "size": [
+        190,
+        70
+      ]
+    },
+    {
+      "id": "cli",
+      "type": "frontend",
+      "label": "CodeFlow CLI",
+      "sublabel": "React + OpenTUI",
+      "tag": "npm codeflow-ai",
+      "pos": [
+        60,
+        300
+      ],
+      "size": [
+        190,
+        70
+      ],
+      "sources": [
+        {
+          "path": "packages/cli/src/hooks/use-chat.ts"
+        },
+        {
+          "path": "packages/cli/src/lib/auth.ts"
+        }
+      ]
+    },
+    {
+      "id": "gate",
+      "type": "security",
+      "label": "Auth + Credit Gate",
+      "sublabel": "Hono middleware",
+      "tag": "401 · 402",
+      "pos": [
+        400,
+        300
+      ],
+      "size": [
+        190,
+        70
+      ],
+      "sources": [
+        {
+          "path": "packages/server/src/middleware/require-auth.ts"
+        },
+        {
+          "path": "packages/server/src/middleware/require-credits-balance.ts"
+        }
+      ]
+    },
+    {
+      "id": "chat",
+      "type": "backend",
+      "label": "Chat Orchestrator",
+      "sublabel": "POST /chat · AI SDK",
+      "pos": [
+        740,
+        300
+      ],
+      "size": [
+        190,
+        70
+      ],
+      "sources": [
+        {
+          "path": "packages/server/src/routes/chat.ts"
+        }
+      ]
+    },
+    {
+      "id": "anthropic",
+      "type": "external",
+      "label": "Anthropic",
+      "sublabel": "claude-4-6 family",
+      "brand": "anthropic",
+      "pos": [
+        1080,
+        300
+      ],
+      "size": [
+        190,
+        70
+      ]
+    },
+    {
+      "id": "tools",
+      "type": "frontend",
+      "label": "Local Tool Runner",
+      "sublabel": "read · grep · edit · bash",
+      "tag": "sandboxed to cwd",
+      "pos": [
+        60,
+        540
+      ],
+      "size": [
+        190,
+        70
+      ],
+      "sources": [
+        {
+          "path": "packages/cli/src/lib/local-tools.ts"
+        }
+      ]
+    },
+    {
+      "id": "sessions",
+      "type": "backend",
+      "label": "Sessions API",
+      "sublabel": "GET · POST /sessions",
+      "pos": [
+        740,
+        540
+      ],
+      "size": [
+        190,
+        70
+      ],
+      "sources": [
+        {
+          "path": "packages/server/src/routes/sessions.ts"
+        }
+      ]
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "Prisma 7 · Session rows",
+      "brand": "postgresql",
+      "pos": [
+        1080,
+        540
+      ],
+      "size": [
+        190,
+        70
+      ],
+      "sources": [
+        {
+          "path": "packages/database/prisma/schema.prisma"
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Developer machine",
+      "wraps": [
+        "cli",
+        "tools"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": "Render · Hono on Bun",
+      "wraps": [
+        "gate",
+        "chat",
+        "sessions"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "cli-login",
+      "from": "cli",
+      "to": "clerk",
+      "label": "OAuth 2.0 + PKCE",
+      "variant": "security",
+      "fromSide": "top",
+      "toSide": "left",
+      "labelAt": [
+        155,
+        215
+      ]
+    },
+    {
+      "id": "cli-request",
+      "from": "cli",
+      "to": "gate",
+      "label": "HTTPS · SSE stream",
+      "variant": "emphasis"
+    },
+    {
+      "id": "gate-verify",
+      "from": "gate",
+      "to": "clerk",
+      "label": "verify token",
+      "variant": "security",
+      "labelAt": [
+        495,
+        180
+      ]
+    },
+    {
+      "id": "gate-balance",
+      "from": "gate",
+      "to": "polar",
+      "label": "credit balance",
+      "variant": "security",
+      "fromSide": "right",
+      "toSide": "left",
+      "labelAt": [
+        665,
+        215
+      ]
+    },
+    {
+      "id": "gate-chat",
+      "from": "gate",
+      "to": "chat",
+      "label": "userId",
+      "labelDx": 37
+    },
+    {
+      "id": "gate-sessions",
+      "from": "gate",
+      "to": "sessions",
+      "label": "userId"
+    },
+    {
+      "id": "chat-anthropic",
+      "from": "chat",
+      "to": "anthropic",
+      "label": "streamText",
+      "labelDx": -37
+    },
+    {
+      "id": "chat-openai",
+      "from": "chat",
+      "to": "openai",
+      "label": "streamText",
+      "fromSide": "right",
+      "toSide": "left",
+      "labelAt": [
+        1005,
+        215
+      ]
+    },
+    {
+      "id": "chat-meter",
+      "from": "chat",
+      "to": "polar",
+      "label": "ingest credits",
+      "variant": "dashed",
+      "labelAt": [
+        835,
+        215
+      ]
+    },
+    {
+      "id": "chat-persist",
+      "from": "chat",
+      "to": "db",
+      "label": "persist messages",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "cli-tools",
+      "from": "cli",
+      "to": "tools",
+      "label": "run in project dir",
+      "labelAt": [
+        155,
+        455
+      ]
+    },
+    {
+      "id": "sessions-db",
+      "from": "sessions",
+      "to": "db",
+      "label": "read · create"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Client",
+      "items": [
+        "Ships as the codeflow-ai npm package",
+        "Tools run locally, sandboxed to the project cwd",
+        "Token cached at ~/.codeflow/auth.json, mode 0600"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Server",
+      "items": [
+        "Hono on Bun, containerised on Render",
+        "requireAuth and requireCreditsBalance guard every route",
+        "Tool contracts have no execute; calls stream to the CLI"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Modes, state, billing",
+      "items": [
+        "PLAN is read-only; BUILD adds write, edit and bash",
+        "Turns persist to Postgres once no tool call is pending",
+        "Usage becomes credits in Polar; an empty balance is 402"
+      ]
+    }
+  ]
+}
