@@ -8,6 +8,10 @@ analysis and design, and a build mode for making changes to the codebase.
 The application is built with Bun, React (rendered to the terminal via OpenTUI),
 and Hono, and persists conversation history in PostgreSQL through Prisma.
 
+[![CodeFlow demo: type a prompt, Tab to Plan, Tab to Build, then switch themes](docs/launch.webp)](docs/launch.mp4)
+
+*23 seconds: Plan, then Build, then 32 themes. [Watch with sound.](docs/launch.mp4)*
+
 ## Installation
 
 CodeFlow requires [Bun](https://bun.sh/) to be installed.
