@@ -1,5 +1,5 @@
 import { mkdir, readFile, readdir, stat, writeFile } from "fs/promises";
-import { dirname, isAbsolute, join, relative, resolve } from "path";
+import { dirname, isAbsolute, join, relative, resolve, sep } from "path";
 import { toolInputSchemas, Mode, type ModeType } from "@codeflow/shared";
 
 const MAX_FILE_SIZE = 10_000;
@@ -13,7 +13,7 @@ function resolveInsideCwd(path: string) {
   const resolved = resolve(cwd, path);
   const rel = relative(cwd, resolved);
 
-  if (rel.startsWith("..") || isAbsolute(rel)) {
+  if (rel === ".." || rel.startsWith(`..${sep}`) || isAbsolute(rel)) {
     throw new Error("Path is outside the project directory");
   }
 
@@ -87,7 +87,7 @@ export async function executeLocalTool(toolName: string, input: unknown, mode: M
         "-E",
       ];
       if (include) args.push(`--include=${include}`);
-      args.push(pattern, resolved);
+      args.push("-e", pattern, resolved);
 
       const proc = Bun.spawn(["grep", ...args], { cwd, stdout: "pipe", stderr: "pipe" });
       const [stdout, stderr] = await Promise.all([
@@ -140,7 +140,7 @@ export async function executeLocalTool(toolName: string, input: unknown, mode: M
       if (occurrences === 0) throw new Error("oldString not found in file");
       if (occurrences > 1) throw new Error(`oldString is ambiguous; found ${occurrences} matches`);
 
-      await writeFile(resolved, content.replace(oldString, newString), "utf-8");
+      await writeFile(resolved, content.replace(oldString, () => newString), "utf-8");
       return { success: true as const, path: relative(cwd, resolved) };
     }
     case "bash": {

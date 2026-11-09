@@ -1,0 +1,54 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    # Windows: the same OS the tests were written and verified on (the path-sandbox tests use Windows paths).
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    env:
+      TESTCOLLAB_TOKEN: ${{ secrets.TESTCOLLAB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Unit and integration tests (bun test)
+        working-directory: testing
+        run: |
+          mkdir -p ci-results
+          bun test --coverage --reporter=junit --reporter-outfile=ci-results/junit-ci.xml
+
+      - name: API tests (Postman collections run by Newman)
+        if: ${{ !cancelled() }}
+        run: bun testing/automation/api-tests.ts
+
+      - name: Upload test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            testing/ci-results/junit-ci.xml
+            testing/automation/results/*.xml
+
+      # Runs only when the repository has a TESTCOLLAB_TOKEN secret (never on forks).
+      # Optional repository variable TESTCOLLAB_PROJECT overrides the project id.
+      - name: Report results to TestCollab
+        if: ${{ !cancelled() && env.TESTCOLLAB_TOKEN != '' }}
+        working-directory: testing
+        run: npx --yes @testcollab/cli report --project "${{ vars.TESTCOLLAB_PROJECT || '19282' }}" --format junit --result-file ci-results/junit-ci.xml --auto-create

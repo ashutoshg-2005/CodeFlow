@@ -79,7 +79,7 @@ function convertUsdToCredits(estimatedCostUsd: number) {
 
   // If a request costs any non-zero amount, charge at least 1 credit, then
   // round up so partial credits always become a whole credit.
-  return Math.max(1, Math.ceil(estimatedCostUsd / USD_PER_CREDIT));
+  return Math.max(1, Math.ceil(estimatedCostUsd / USD_PER_CREDIT - 1e-9));
 };
 
 
