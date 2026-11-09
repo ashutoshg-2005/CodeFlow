@@ -89,3 +89,8 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # /brag launch video output (generated locally; not committed)
 brag-output*/
+
+# test run outputs (generated)
+testing/ci-results/
+testing/automation/results/
+testing/tmp/
