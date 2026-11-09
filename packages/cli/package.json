@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "@codeflow/server": "workspace:*",
+    "@codeflow/shared": "workspace:*",
     "@types/react": "^19.2.17"
   },
   "peerDependencies": {
