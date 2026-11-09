@@ -1,0 +1,69 @@
+{
+  "info": {
+    "name": "CodeFlow chat gate (data-driven)",
+    "description": "One POST /chat request run once per row of data/chat-gate.csv. Columns: caseId, token, mode, model, sessionId, expectedStatus, expectedError.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test(\"Response time is under 2000 ms\", function () { pm.expect(pm.response.responseTime).to.be.below(2000); });"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "POST /chat - {{caseId}}",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const id = pm.iterationData.get(\"caseId\");",
+              "const expected = Number(pm.iterationData.get(\"expectedStatus\"));",
+              "const expectedError = pm.iterationData.get(\"expectedError\");",
+              "pm.test(id + \" returns \" + expected, function () { pm.response.to.have.status(expected); });",
+              "if (expectedError) { pm.test(id + \" error message\", function () { pm.expect(pm.response.json().error).to.eql(expectedError); }); }"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"{{sessionId}}\",\n  \"mode\": \"{{mode}}\",\n  \"model\": \"{{model}}\",\n  \"messages\": [{ \"id\": \"m1\", \"role\": \"user\", \"parts\": [{ \"type\": \"text\", \"text\": \"hello\" }] }]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/chat",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "chat"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+caseId,token,mode,model,sessionId,expectedStatus,expectedError
+DT-01,forged-token,BUILD,claude-haiku-4-5,s1,401,Unauthorized. Run /login to continue.
+DT-02,user-down,BUILD,claude-haiku-4-5,s1,503,Unable to verify credits balance right now.
+DT-03,user-zero,BUILD,claude-haiku-4-5,s1,402,No credits remaining. Run /upgrade to buy more credits.
+DT-04,user-ok,DEBUG,claude-haiku-4-5,s1,400,Invalid request body
+DT-05,user-ok,BUILD,claude-haiku-4-5,missing,404,Session not found
+DT-06,user-ok,BUILD,claude-haiku-4-5,s1,200,
+BVA-24,user-neg,BUILD,claude-haiku-4-5,s1,402,No credits remaining. Run /upgrade to buy more credits.
+BVA-25,user-zero,BUILD,claude-haiku-4-5,s1,402,No credits remaining. Run /upgrade to buy more credits.
+BVA-26,user-one,BUILD,claude-haiku-4-5,s1,200,
+ECP-17,user-ok,BUILD,gpt-4,s1,400,Invalid request body
+MX-01,user-ok,PLAN,claude-sonnet-4-6,s1,200,
+MX-02,user-ok,PLAN,claude-haiku-4-5,s1,200,
+MX-03,user-ok,PLAN,claude-opus-4-6,s1,200,
+MX-04,user-ok,PLAN,gpt-5.4,s1,200,
+MX-05,user-ok,PLAN,gpt-5.4-mini,s1,200,
+MX-06,user-ok,PLAN,gpt-5.4-nano,s1,200,
+MX-07,user-ok,BUILD,claude-sonnet-4-6,s1,200,
+MX-08,user-ok,BUILD,claude-haiku-4-5,s1,200,
+MX-09,user-ok,BUILD,claude-opus-4-6,s1,200,
+MX-10,user-ok,BUILD,gpt-5.4,s1,200,
+MX-11,user-ok,BUILD,gpt-5.4-mini,s1,200,
+MX-12,user-ok,BUILD,gpt-5.4-nano,s1,200,
